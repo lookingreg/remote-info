@@ -13,20 +13,20 @@
  * 
  * 2013.06.15  bperrybap  - conversion to openGLCD
  * 2011.12.04  bperrybap  - original creation
- *	bperrybap@opensource.billsworld.billandterrie.com
+ *  bperrybap@opensource.billsworld.billandterrie.com
  */
 
 // include the library header
 // no font headers have to be included
 #include <openGLCD.h>
 #define CLEAR_SRN_SMBL '-'
-#define LINE_START_SYMBOL 'p'
+#define LINE_START_SYMBOL '~'
 
 
 
 bool clearScreen() {
         GLCD.ClearScreen();
-        GLCD.println("Listening.!.");
+        GLCD.println("Listening...");
         return true;
 }
 

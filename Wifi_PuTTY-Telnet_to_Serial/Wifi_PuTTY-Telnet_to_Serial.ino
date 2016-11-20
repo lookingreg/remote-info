@@ -19,7 +19,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include <ESP8266WiFi.h>
-#define LINE_START_SYMBOL 'p'
+#define LINE_START_SYMBOL '~'
 //adding Cyryllic symbols for print function.
 //char* RUS(char* StrIn){char* StrOut=StrIn; uint8_t i[4]={0,0,StrIn[0],StrIn[1]}; while(i[2]>0&&i[0]<255){if(i[2]==0xd0&&i[3]>0x8F&&i[3]<0xC0){StrOut[i[1]]=i[3]+0x30;i[0]++;}else if(i[2]==0xd0&&i[3]==0x81){StrOut[i[1]]=0xA8;i[0]++;}else if(i[2]==0xd1&&i[3]>0x7F&&i[3]<0x90){StrOut[i[1]]=i[3]+0x70;i[0]++;}else if(i[2]==0xd1&&i[3]==0x91){StrOut[i[1]]=0xB8;i[0]++;}else{StrOut[i[1]]=i[2];} i[0]++; i[1]++; i[2]=StrIn[i[0]]; i[3]=StrIn[i[0]+1];} StrOut[i[1]]='\0'; return StrOut;}
 
@@ -32,9 +32,15 @@ WiFiServer server(23);
 WiFiClient serverClients[MAX_SRV_CLIENTS];
 
 void print(String string){
-//  Serial.print(string);
-//  Serial.print("" + LINE_START_SYMBOL + string + "\n");
-//  Serial1.println("" + LINE_START_SYMBOL + string);
+  Serial.println(String(LINE_START_SYMBOL) + string);
+}
+
+String DisplayAddress(IPAddress address)
+{
+ return String(address[0]) + "." + 
+        String(address[1]) + "." + 
+        String(address[2]) + "." + 
+        String(address[3]);
 }
 
 void setup() {
@@ -43,8 +49,8 @@ void setup() {
   delay(5000);
   Serial.begin(115200);
   Serial.print("\n-");
-  Serial.println("pConnecting to ");
-  Serial.println(LINE_START_SYMBOL + ssid);
+  print("Connecting to ");
+  print(ssid);
   uint8_t i = 0;
   while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
   if(i == 21){
@@ -54,9 +60,8 @@ void setup() {
   //start UART and the server
   server.begin();
   server.setNoDelay(true);
-  Serial.print("Ready! Use 'telnet ");
-  Serial.print(" 23' to connect");
-  Serial.println(LINE_START_SYMBOL + WiFi.localIP());
+  print("Ready! Use telnet ");
+  print(DisplayAddress(WiFi.localIP()));
 }
 
 void loop() {
@@ -69,7 +74,7 @@ void loop() {
       if (!serverClients[i] || !serverClients[i].connected()){
         if(serverClients[i]) serverClients[i].stop();
         serverClients[i] = server.available();
-        print("New client: "); Serial1.println(i);
+        print("New client: " + i);
 // стираем буфер - начало
         delay(50);
         while(serverClients[i].available())
@@ -95,7 +100,6 @@ void loop() {
         { 
           c = serverClients[i].read();
           Serial.write(c);
-          Serial1.write(c);
         }
       }
     }
@@ -109,6 +113,7 @@ void loop() {
     //push UART data to all connected telnet clients
     for(i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()){
+        serverClients[i].write('~');
         serverClients[i].write(sbuf, len);
         serverClients[i].write('\r');
         serverClients[i].write('\n');
